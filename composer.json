@@ -13,11 +13,17 @@
     ],
     "require": {
         "yiisoft/yii2": "*",
-        "2amigos/yii2-gallery-widget" : "0.1.*"
-    },
+        "2amigos/yii2-gallery-widget" : "0.1.*",
+ 		"bower-asset/jQuery-File-Upload": "@stable"
+   },
     "autoload": {
         "psr-4": {
             "dosamigos\\fileupload\\": ""
         }
-    }
+    },
+	"extra": {
+        "asset-installer-paths": {
+            "bower-asset-library": "vendor/bower"
+        }
+	}
 }
