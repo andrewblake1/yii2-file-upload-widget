@@ -18,16 +18,16 @@ use yii\web\AssetBundle;
  */
 class FileUploadAsset extends AssetBundle
 {
-    public $sourcePath = '@vendor/2amigos/yii2-file-upload-widget/assets/';
+    public $sourcePath = '@bower/jquery-file-upload/';
 
     public $css = [
-        'blueimp-file-upload/css/jquery.fileupload.css'
+        'css/jquery.fileupload.css'
     ];
 
     public $js = [
-        'blueimp-file-upload/js/vendor/jquery.ui.widget.js',
-        'blueimp-file-upload/js/jquery.iframe-transport.js',
-        'blueimp-file-upload/js/jquery.fileupload.js'
+        'js/vendor/jquery.ui.widget.js',
+        'js/jquery.iframe-transport.js',
+        'js/jquery.fileupload.js'
     ];
 
     public $depends = [

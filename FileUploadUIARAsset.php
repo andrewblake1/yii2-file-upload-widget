@@ -9,14 +9,14 @@ namespace dosamigos\fileupload;
 use yii\web\AssetBundle;
 
 /**
- * FileUploadPlusAsset
+ * FileUploadUIAsset
  *
  * @author Antonio Ramirez <amigo.cobos@gmail.com>
  * @link http://www.ramirezcobos.com/
  * @link http://www.2amigos.us/
  * @package dosamigos\fileupload
  */
-class FileUploadPlusAsset extends AssetBundle
+class FileUploadUIARAsset extends AssetBundle
 {
     public $sourcePath = '@bower/';
 
@@ -25,17 +25,23 @@ class FileUploadPlusAsset extends AssetBundle
     ];
 
     public $js = [
+        'jquery-file-upload/js/vendor/jquery.ui.widget.js',
+        'blueimp-tmpl/js/tmpl.min.js',
         'blueimp-load-image/js/load-image.all.min.js',
-        'blueimp-canvas-to-blob/js/canvas-to-blob.min.js',
+        'blueimp-canvas-to-blob/js/canvas-to-blob.js',
         'jquery-file-upload/js/jquery.iframe-transport.js',
+        'jquery-file-upload/js/jquery.fileupload.js',
         'jquery-file-upload/js/jquery.fileupload-process.js',
         'jquery-file-upload/js/jquery.fileupload-image.js',
         'jquery-file-upload/js/jquery.fileupload-audio.js',
         'jquery-file-upload/js/jquery.fileupload-video.js',
-        'jquery-file-upload/js/jquery.fileupload-validate.js'
+        'jquery-file-upload/js/jquery.fileupload-validate.js',
+        'jquery-file-upload/js/jquery.fileupload-ui.js',
+
     ];
 
     public $depends = [
-        'dosamigos\fileupload\FileUploadAsset',
+        'yii\web\JqueryAsset',
+        'yii\bootstrap\BootstrapPluginAsset',
     ];
 } 

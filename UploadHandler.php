@@ -10,8 +10,15 @@
  * http://www.opensource.org/licenses/MIT
  */
 
+namespace dosamigos\fileupload;
+
 class UploadHandler
 {
+	// true if errors have occurred
+	public $has_errors = false;
+	
+	// if the option print_response is false then $response_content will be set to the content instead of being output
+	public $response_content;
 
     protected $options;
 
@@ -42,6 +49,7 @@ class UploadHandler
 
     function __construct($options = null, $initialize = true, $error_messages = null) {
         $this->options = array(
+			'print_response' => true,
             'script_url' => $this->get_full_url().'/',
             'upload_dir' => dirname($this->get_server_var('SCRIPT_FILENAME')).'/files/',
             'upload_url' => $this->get_full_url().'/files/',
@@ -167,15 +175,15 @@ class UploadHandler
                 $this->head();
                 break;
             case 'GET':
-                $this->get();
+                $this->get($this->options['print_response']);
                 break;
             case 'PATCH':
             case 'PUT':
             case 'POST':
-                $this->post();
+                $this->post($this->options['print_response']);
                 break;
             case 'DELETE':
-                $this->delete();
+                $this->delete($this->options['print_response']);
                 break;
             default:
                 $this->header('HTTP/1.1 405 Method Not Allowed');
@@ -332,6 +340,9 @@ class UploadHandler
     }
 
     protected function get_error_message($error) {
+		// set flag to indicate an error has occurred
+		$this->hasErrors = true;
+		
         return array_key_exists($error, $this->error_messages) ?
             $this->error_messages[$error] : $error;
     }
@@ -1111,7 +1122,7 @@ class UploadHandler
         return isset($_SERVER[$id]) ? $_SERVER[$id] : '';
     }
 
-    protected function generate_response($content, $print_response = true) {
+    public function generate_response($content, $print_response = true) {
         if ($print_response) {
             $json = json_encode($content);
             $redirect = isset($_REQUEST['redirect']) ?
@@ -1132,6 +1143,9 @@ class UploadHandler
             }
             $this->body($json);
         }
+		else {
+			$this->response_content = $content;
+		}
         return $content;
     }
 
@@ -1263,8 +1277,9 @@ class UploadHandler
 
     public function post($print_response = true) {
         if (isset($_REQUEST['_method']) && $_REQUEST['_method'] === 'DELETE') {
-            return $this->delete($print_response);
+            return $this->delete(true);
         }
+
         $upload = isset($_FILES[$this->options['param_name']]) ?
             $_FILES[$this->options['param_name']] : null;
         // Parse the Content-Disposition header, if available:
