@@ -5,7 +5,6 @@ use yii\helpers\Html;
 $context = $this->context;
 ?>
     <!-- The file upload form used as target for the file upload widget -->
-<?= Html::beginForm($context->url, 'post', $context->options); ?>
     <!-- The fileupload-buttonbar contains buttons to add/delete files and start/cancel the upload -->
     <div class="row fileupload-buttonbar">
         <div class="col-lg-7">
@@ -21,18 +20,9 @@ $context = $this->context;
             </span>
             <button type="submit" class="btn btn-primary start">
                 <i class="glyphicon glyphicon-upload"></i>
-                <span>Start upload</span>
+                <span>Save</span>
             </button>
-            <button type="reset" class="btn btn-warning cancel">
-                <i class="glyphicon glyphicon-ban-circle"></i>
-                <span>Cancel upload</span>
-            </button>
-            <button type="button" class="btn btn-danger delete">
-                <i class="glyphicon glyphicon-trash"></i>
-                <span>Delete</span>
-            </button>
-            <input type="checkbox" class="toggle">
-            <!-- The global file processing state -->
+             <!-- The global file processing state -->
             <span class="fileupload-process"></span>
         </div>
         <!-- The global progress state -->
@@ -47,4 +37,3 @@ $context = $this->context;
     </div>
     <!-- The table listing the files available for upload/download -->
     <table role="presentation" class="table table-striped"><tbody class="files"></tbody></table>
-<?= Html::endForm();?>

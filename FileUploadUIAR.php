@@ -43,15 +43,15 @@ class FileUploadUIAR extends FileUpload
     /**
      * @var string the form view path to render the JQuery File Upload UI
      */
-    public $formView = '@vendor/2amigos/yii2-file-upload-widget/views/form';
+    public $formView = '@vendor/2amigos/yii2-file-upload-widget/views/formUIAR';
     /**
      * @var string the upload view path to render the js upload template
      */
-    public $uploadTemplateView = '@vendor/2amigos/yii2-file-upload-widget/views/upload';
+    public $uploadTemplateView = '@vendor/2amigos/yii2-file-upload-widget/views/uploadUIAR';
     /**
      * @var string the download view path to render the js download template
      */
-    public $downloadTemplateView = '@vendor/2amigos/yii2-file-upload-widget/views/download';
+    public $downloadTemplateView = '@vendor/2amigos/yii2-file-upload-widget/views/downloadUIAR';
     /**
      * @var string the gallery
      */
@@ -112,10 +112,10 @@ class FileUploadUIAR extends FileUpload
         $options = Json::encode($this->clientOptions);
         $id = $this->options['id'];
 
-        $js[] = "jQuery('#$id').fileupload($options);";
-		
-		// Would be great if blueimp would allow option when initializing to load existing files
-		$js[] = <<<HERE
+		$js = <<<HERE
+			// set up for uploading
+			jQuery('#$id').fileupload($options);
+			
 			// Load existing files:
 			$('#$id').addClass('fileupload-processing');
 			$.ajax({
@@ -131,22 +131,33 @@ class FileUploadUIAR extends FileUpload
 					.call(this, $.Event('done'), {result: result});
 			});
 			
-			// set call back for when upload process stops
+			// set call back for when upload process finished
 			$('#$id').bind('fileuploadfinished', function (e, data)
 			{
 				// allow redirect only if no errors in form data
 				if(data.result.hasOwnProperty('redirect')) {
 					window.location.href = data.result.redirect;
 				}
+				// otherwise if form errors
+				else if(data.result.hasOwnProperty('activeformerrors')) {
+					// use yii to deal with the error
+					$('#$id').data('yiiActiveForm').submitting = true;
+					$('#$id').yiiActiveForm('updateInputs', data.result.activeformerrors);
+				}
 			});
 			
+			// make the submit button work even without new files
+			$('#$id .fileupload-buttonbar .start').on('click',function () { 
+				// allow update without having to upload - this courtesy of plugin author
+				var form = $('form').first();
+				if (!form.find('.files .start').length) {
+					// submit the normal ActiveForm way - no files being uploaded i.e. just the form data
+					$('#$id .btn.btn-primary.hide').click();
+				}
+			});
+
 HERE;
 		
-        if (!empty($this->clientEvents)) {
-            foreach ($this->clientEvents as $event => $handler) {
-                $js[] = "jQuery('#$id').on('$event', $handler);";
-            }
-        }
-        $view->registerJs(implode("\n", $js));
+        $view->registerJs($js);
     }
 } 
