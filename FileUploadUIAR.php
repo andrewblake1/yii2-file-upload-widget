@@ -131,63 +131,50 @@ class FileUploadUIAR extends FileUpload
 					.call(this, $.Event('done'), {result: result});
 			});
 
-			// set call back for when upload process finished
-			$('#$id').bind('fileuploadfinished', function (e, data) {
-				// allow redirect only if no errors in form data
-				if(data.result.hasOwnProperty('redirect')) {
-					window.location.href = data.result.redirect;
-				}
-				// otherwise if form errors
-				else if(data.result.hasOwnProperty('activeformerrors')) {
-					// use yii to deal with the error
-					$('#$id').data('yiiActiveForm').submitting = true;
-					$('#$id').yiiActiveForm('updateInputs', data.result.activeformerrors);
-				}
-			});
-
-			
 			// allow submit even without new files - which jquery file upload blocks by checking for file before sumitting
 			$('#$id .fileupload-buttonbar .start').on('click',function () { 
 				// allow update without having to upload - this courtesy of plugin author
 				var form = $('form').first();
 				if (!form.find('.files .start').length) {
 					// submit the normal ActiveForm way - no files being uploaded i.e. just the form data
-					$('#$id').submit();
+			// this stopped working and havn't found why - likely accidentlaly altered a javascript file
+//					$('#$id').submit();
+					$('#activeFromSave').click();
 				}
 			});
-			
+
 			// set call back for when upload process done - to block removal of the file input in case of error
 			// basically we do want to show file upload errors but return others to there pre-upload state
 			$('#$id').bind('fileuploaddone', function (e, data) {
-				// if there are errors there will be no redirect key in our json response from the UploadHandler
-				if(!data.result.hasOwnProperty('redirect')) {
+				// if there are errors there will be no redirect member in our json response from the UploadHandler
+				// allow redirect only if no errors in form data
+				if(data.result.hasOwnProperty('redirect')) {
+					window.location.href = data.result.redirect;
+				}
+				else {
 					// prevent the normal processing which will remove the file inputs for good. We want to keep them and put them back
 					// to a state where the good ones can be reused without the user having to re-select
 					e.preventDefault();
 			
 					// loop thru each of the rows in our fileupload widget
 					$('tr.template-upload.fade.in').each(function(index) {
-						var file = data.result.files[index];
+						var file = data.result.hasOwnProperty('files') ? data.result.files[index] : null;
 						var error;
-						// if upload was successful for this file
-						if(file) {
-			
-							// if there was an error returned from the server
-							if(file.hasOwnProperty('error')) {
-								// remove the progress bar
-								$('.progress', this).remove();
-								// set an error for display
-								error = file.error;
-							}
-							else {
-								// reset the progress bar
-								$('.progress-bar.progress-bar-success', $('.progress', this).attr('aria-valuenow', 0)).attr('style', 'width: 0%;');
-								// enable the start button - even though it is hidden
-								$('button.btn.btn-primary.start', this).prop('disabled', false);
-							}
+						// if an error was returned from the server
+						if(file && file.hasOwnProperty('error')) {
+							// remove the progress bar
+							$('.progress', this).remove();
+							// set an error for display
+							error = file.error;
 						}
+						// am assuming any empty result can only come from create within updateAction where ActiveRecord:save() failed
+						// but will get into this else as well if no error - discarding empty result error in jqeury.fileupload-ui.js done
+						// handler
 						else {
-							error = 'Empty file upload result';
+							// reset the progress bar
+							$('.progress-bar.progress-bar-success', $('.progress', this).attr('aria-valuenow', 0)).attr('style', 'width: 0%;');
+							// enable the start button - even though it is hidden
+							$('button.btn.btn-primary.start', this).prop('disabled', false);
 						}
 						
 						if(error) {
@@ -195,6 +182,16 @@ class FileUploadUIAR extends FileUpload
 							$('.error.text-danger', this).html(error);
 						}
 					});
+
+					// if form errors
+					if(data.result.hasOwnProperty('activeformerrors') && !data.result.activeformerrors.hasOwnProperty('length')) {
+						// use yii to deal with the error
+						$('#$id').data('yiiActiveForm').submitting = true;
+						$('#$id').yiiActiveForm('updateInputs', data.result.activeformerrors);
+					}
+			
+					// if non attribute form errors - e.g. trigger reported errors, fk constraint errors etc
+					$('#nonattributeerrors').html(data.result.hasOwnProperty('nonattributeerrors') ? data.result.nonattributeerrors : '');
 				}
 			});
 

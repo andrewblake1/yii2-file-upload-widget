@@ -1122,7 +1122,7 @@ class UploadHandler
         return isset($_SERVER[$id]) ? $_SERVER[$id] : '';
     }
 
-    public function generate_response($content, $print_response = true) {
+    protected function generate_response($content, $print_response = true) {
         if ($print_response) {
             $json = json_encode($content);
             $redirect = isset($_REQUEST['redirect']) ?
