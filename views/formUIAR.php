@@ -18,7 +18,7 @@ $context = $this->context;
                     : Html::fileInput($context->name, $context->value, $context->fieldOptions);?>
 
             </span>
-            <button type="submit" class="btn btn-primary start">
+            <button type="button" class="btn btn-primary start">
                 <i class="glyphicon glyphicon-upload"></i>
                 <span>Save</span>
             </button>

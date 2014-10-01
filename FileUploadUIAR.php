@@ -21,25 +21,12 @@ use yii\helpers\Json;
  * @link http://www.2amigos.us/
  * @package dosamigos\fileupload
  */
-class FileUploadUIAR extends FileUpload
+class FileUploadUIAR extends FileUploadUI
 {
     /**
      * @var bool whether to use the Bootstrap Gallery on the images or not
      */
-    public $gallery = true;
-    /**
-     * @var array the HTML attributes for the file input tag.
-     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
-     */
-    public $fieldOptions = [];
-    /**
-     * @var string the ID of the upload template, given as parameter to the tmpl() method to set the uploadTemplate option.
-     */
-    public $uploadTemplateId;
-    /**
-     * @var string the ID of the download template, given as parameter to the tmpl() method to set the downloadTemplate option.
-     */
-    public $downloadTemplateId;
+    public $gallery = false;
     /**
      * @var string the form view path to render the JQuery File Upload UI
      */
@@ -52,32 +39,15 @@ class FileUploadUIAR extends FileUpload
      * @var string the download view path to render the js download template
      */
     public $downloadTemplateView = '@vendor/2amigos/yii2-file-upload-widget/views/downloadUIAR';
-    /**
-     * @var string the gallery
-     */
-    public $galleryTemplateView = '@vendor/2amigos/yii2-file-upload-widget/views/gallery';
-
 
     /**
      * @inheritdoc
      */
     public function init()
     {
+        $this->fieldOptions['multiple'] = true;
+        $this->fieldOptions['id'] = ArrayHelper::getValue($this->options, 'id');
         parent::init();
-
-        $fieldOptions = [
-			'multiple' => true,
-			'id' => ArrayHelper::getValue($this->options, 'id'),
-		];
-		$this->fieldOptions = $this->fieldOptions + $fieldOptions;
- 
-        $options = [
-			'id' => $this->options['id'] . '-form',
-			'enctype' => 'multipart/form-data',
-			'uploadTemplateId' => $this->uploadTemplateId ? : '#template-upload',
-			'downloadTemplateId' => $this->downloadTemplateId ? : '#template-download',
-		];
- 		$this->options = $this->options + $options;
     }
 
     /**
@@ -107,7 +77,7 @@ class FileUploadUIAR extends FileUpload
             GalleryAsset::register($view);
         }
 
-        FileUploadUIARAsset::register($view);
+        FileUploadUIAsset::register($view);
 
         $options = Json::encode($this->clientOptions);
         $id = $this->options['id'];
@@ -115,6 +85,31 @@ class FileUploadUIAR extends FileUpload
 		$js = <<<HERE
 			// set up for uploading
 			jQuery('#$id').fileupload($options);
+			
+			// this from http://stackoverflow.com/questions/19807361/uploading-multiple-files-asynchronously-by-blueimp-jquery-fileupload
+			// to stop seperate requests for each file
+			var filesList = [], paramNames = [], elem = $("form");
+			file_upload = $('#$id').on("fileuploadadd", function(e, data){
+				filesList.push(data.files[0]);
+				paramNames.push(e.delegatedEvent.target.name);
+			});
+
+			// deal with click events ourselves on the main save button - there is also a hidden save button if no files
+			$('#$id .fileupload-buttonbar .start').on('click',function () { 
+				// if there are some files in our upload q
+				if(filesList.length) {
+					// send them programatically
+					file_upload.fileupload('send', {files:filesList, paramName: paramNames});
+				} else {
+					$('#activFormSave').click();
+				}
+			});
+
+			// block submit thru file upload - will happen by direct call above - even though would have though taking over click would have
+			// done this it does so guiessing send calls submit first or something and perhaps empties the q
+			$('#$id').bind('fileuploadsubmit', function (e, data) {
+				e.preventDefault();
+			});
 			
 			// Load existing files:
 			$('#$id').addClass('fileupload-processing');
@@ -131,31 +126,17 @@ class FileUploadUIAR extends FileUpload
 					.call(this, $.Event('done'), {result: result});
 			});
 
-			// allow submit even without new files - which jquery file upload blocks by checking for file before sumitting
-			$('#$id .fileupload-buttonbar .start').on('click',function () { 
-				// allow update without having to upload - this courtesy of plugin author
-				var form = $('form').first();
-				if (!form.find('.files .start').length) {
-					// submit the normal ActiveForm way - no files being uploaded i.e. just the form data
-			// this stopped working and havn't found why - likely accidentlaly altered a javascript file
-//					$('#$id').submit();
-					$('#activeFromSave').click();
-				}
-			});
 
 			// set call back for when upload process done - to block removal of the file input in case of error
 			// basically we do want to show file upload errors but return others to there pre-upload state
 			$('#$id').bind('fileuploaddone', function (e, data) {
+				e.preventDefault();
 				// if there are errors there will be no redirect member in our json response from the UploadHandler
 				// allow redirect only if no errors in form data
 				if(data.result.hasOwnProperty('redirect')) {
 					window.location.href = data.result.redirect;
 				}
 				else {
-					// prevent the normal processing which will remove the file inputs for good. We want to keep them and put them back
-					// to a state where the good ones can be reused without the user having to re-select
-					e.preventDefault();
-			
 					// loop thru each of the rows in our fileupload widget
 					$('tr.template-upload.fade.in').each(function(index) {
 						var file = data.result.hasOwnProperty('files') ? data.result.files[index] : null;

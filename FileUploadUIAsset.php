@@ -17,26 +17,26 @@ use yii\web\AssetBundle;
  * @package dosamigos\fileupload
  */
 class FileUploadUIAsset extends AssetBundle
-{
-    public $sourcePath = '@vendor/2amigos/yii2-file-upload-widget/assets/';
+{ 
+    public $sourcePath = '@bower/';
 
     public $css = [
-        'blueimp-file-upload/css/jquery.fileupload.css'
+        'jquery-file-upload/css/jquery.fileupload.css'
     ];
 
     public $js = [
-        'blueimp-file-upload/js/vendor/jquery.ui.widget.js',
+        'jquery-file-upload/js/vendor/jquery.ui.widget.js',
         'blueimp-tmpl/js/tmpl.min.js',
-        'blueimp-load-image/js/load-image.min.js',
-        'blueimp-canvas-to-blob/js/canvas-to-blob.min.js',
-        'blueimp-file-upload/js/jquery.iframe-transport.js',
-        'blueimp-file-upload/js/jquery.fileupload.js',
-        'blueimp-file-upload/js/jquery.fileupload-process.js',
-        'blueimp-file-upload/js/jquery.fileupload-image.js',
-        'blueimp-file-upload/js/jquery.fileupload-audio.js',
-        'blueimp-file-upload/js/jquery.fileupload-video.js',
-        'blueimp-file-upload/js/jquery.fileupload-validate.js',
-        'blueimp-file-upload/js/jquery.fileupload-ui.js',
+        'blueimp-load-image/js/load-image.all.min.js',
+        'blueimp-canvas-to-blob/js/canvas-to-blob.js',
+        'jquery-file-upload/js/jquery.iframe-transport.js',
+        'jquery-file-upload/js/jquery.fileupload.js',
+        'jquery-file-upload/js/jquery.fileupload-process.js',
+        'jquery-file-upload/js/jquery.fileupload-image.js',
+        'jquery-file-upload/js/jquery.fileupload-audio.js',
+        'jquery-file-upload/js/jquery.fileupload-video.js',
+        'jquery-file-upload/js/jquery.fileupload-validate.js',
+        'jquery-file-upload/js/jquery.fileupload-ui.js',
 
     ];
 
