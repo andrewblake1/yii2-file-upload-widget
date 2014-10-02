@@ -45,9 +45,18 @@ class FileUploadUIAR extends FileUploadUI
      */
     public function init()
     {
+        $this->options['id'] = $this->model->formName();	// form id
+
+        $this->clientOptions['maxFileSize'] = 2000000;
+		$this->clientOptions['filesContainer'] = '#' . str_replace('[]', '', $this->name) . '-files-container';
+
+        $this->fieldOptions['accept'] = 'image/*';
         $this->fieldOptions['multiple'] = true;
-        $this->fieldOptions['id'] = ArrayHelper::getValue($this->options, 'id');
+//        $this->fieldOptions['id'] = ArrayHelper::getValue($this->options, 'id');
+
         parent::init();
+
+		unset($this->fieldOptions['id']); 
     }
 
     /**
@@ -77,59 +86,75 @@ class FileUploadUIAR extends FileUploadUI
             GalleryAsset::register($view);
         }
 
-        FileUploadUIAsset::register($view);
+		$fileUploadTarget = "[name=\"{$this->name}\"]";
+		FileUploadUIAsset::register($view);
 
         $options = Json::encode($this->clientOptions);
-        $id = $this->options['id'];
-
+		// set up for uploading
+        $view->registerJs(";jQuery('$fileUploadTarget').fileupload($options);");
+		
 		$js = <<<HERE
-			// set up for uploading
-			jQuery('#$id').fileupload($options);
+
+			// because we want to potentially return different arrays of files for different attributes we have different names for the file
+			// input and this is the array key we want - not just 'files' as the default plugin implementation assumes
+			jQuery('$fileUploadTarget').fileupload(
+				'option',
+				'getFilesFromResponse',
+				function (data) {
+					if (data.result && $.isArray(data.result['{$this->name}'])) {
+						return data.result['{$this->name}'];
+					}
+					return [];
+				}
+			);
 			
 			// this from http://stackoverflow.com/questions/19807361/uploading-multiple-files-asynchronously-by-blueimp-jquery-fileupload
 			// to stop seperate requests for each file
 			var filesList = [], paramNames = [], elem = $("form");
-			file_upload = $('#$id').on("fileuploadadd", function(e, data){
+			file_upload = $('$fileUploadTarget').on("fileuploadadd", function(e, data){
 				filesList.push(data.files[0]);
 				paramNames.push(e.delegatedEvent.target.name);
 			});
 
 			// deal with click events ourselves on the main save button - there is also a hidden save button if no files
-			$('#$id .fileupload-buttonbar .start').on('click',function () { 
+			$('.fileupload-buttonbar .start').on('click',function () { 
 				// if there are some files in our upload q
 				if(filesList.length) {
 					// send them programatically
 					file_upload.fileupload('send', {files:filesList, paramName: paramNames});
 				} else {
+					// TODO try just a submit thru yiiActiveForm plugin - might not noeed the button and the click
 					$('#activFormSave').click();
 				}
 			});
 
 			// block submit thru file upload - will happen by direct call above - even though would have though taking over click would have
 			// done this it does so guiessing send calls submit first or something and perhaps empties the q
-			$('#$id').bind('fileuploadsubmit', function (e, data) {
+			$('$fileUploadTarget').bind('fileuploadsubmit', function (e, data) {
 				e.preventDefault();
 			});
-			
-			// Load existing files:
-			$('#$id').addClass('fileupload-processing');
-			$.ajax({
-				// Uncomment the following to send cross-domain cookies:
-				//xhrFields: {withCredentials: true},
-				url: $('#$id').fileupload('option', 'url'),
-				dataType: 'json',
-				context: $('#$id')[0]
-			}).always(function () {
-				$(this).removeClass('fileupload-processing');
-			}).done(function (result) {
-				$(this).fileupload('option', 'done')
-					.call(this, $.Event('done'), {result: result});
-			});
 
+//need to change to our new targets							
+			// Load existing files - loop thru all the file inputs which will have fileupload plugin capabilities
+			$('input[type="file"]').each(function() {
+				$(this).addClass('fileupload-processing');
+				$.ajax({
+					// Uncomment the following to send cross-domain cookies:
+					//xhrFields: {withCredentials: true},
+					url: $(this).fileupload('option', 'url'),
+					dataType: 'json',
+					context: $(this)[0]
+				}).always(function () {
+					$(this).removeClass('fileupload-processing');
+				}).done(function (result) {
+					$(this).fileupload('option', 'done')
+						.call(this, $.Event('done'), {result: result});
+				});
+			});
 
 			// set call back for when upload process done - to block removal of the file input in case of error
 			// basically we do want to show file upload errors but return others to there pre-upload state
-			$('#$id').bind('fileuploaddone', function (e, data) {
+			$('$fileUploadTarget').bind('fileuploaddone', function (e, data) {
 				e.preventDefault();
 				// if there are errors there will be no redirect member in our json response from the UploadHandler
 				// allow redirect only if no errors in form data
@@ -139,7 +164,7 @@ class FileUploadUIAR extends FileUploadUI
 				else {
 					// loop thru each of the rows in our fileupload widget
 					$('tr.template-upload.fade.in').each(function(index) {
-						var file = data.result.hasOwnProperty('files') ? data.result.files[index] : null;
+						var file = data.result.hasOwnProperty('{$this->name}') ? data.result['{$this->name}'][index] : null;
 						var error;
 						// if an error was returned from the server
 						if(file && file.hasOwnProperty('error')) {
@@ -167,17 +192,18 @@ class FileUploadUIAR extends FileUploadUI
 					// if form errors
 					if(data.result.hasOwnProperty('activeformerrors') && !data.result.activeformerrors.hasOwnProperty('length')) {
 						// use yii to deal with the error
-						$('#$id').data('yiiActiveForm').submitting = true;
-						$('#$id').yiiActiveForm('updateInputs', data.result.activeformerrors);
+						$('form').data('yiiActiveForm').submitting = true;
+						$('form').yiiActiveForm('updateInputs', data.result.activeformerrors);
 					}
-			
+
 					// if non attribute form errors - e.g. trigger reported errors, fk constraint errors etc
 					$('#nonattributeerrors').html(data.result.hasOwnProperty('nonattributeerrors') ? data.result.nonattributeerrors : '');
 				}
 			});
 
 HERE;
-
-        $view->registerJs($js);
+		
+		// this needs to come after the fileUpload attachement to the file inputs which are in doc ready
+        $view->registerJs($js, \yii\web\View::POS_LOAD);
     }
 } 

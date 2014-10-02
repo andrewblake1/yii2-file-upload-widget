@@ -4,6 +4,7 @@ use yii\helpers\Html;
 
 $context = $this->context;
 ?>
+
 	<!-- The fileupload-buttonbar contains buttons to add/delete files and start/cancel the upload -->
 	<div class="row fileupload-buttonbar">
 		<div class="col-lg-7">
@@ -15,10 +16,6 @@ $context = $this->context;
 				<?= Html::fileInput($context->name, $context->value, $context->fieldOptions);?>
 
 			</span>
-			<button type="button" class="btn btn-primary start">
-				<i class="glyphicon glyphicon-upload"></i>
-				<span>Save</span>
-			</button>
 			 <!-- The global file processing state -->
 			<span class="fileupload-process"></span>
 		</div>

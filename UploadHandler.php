@@ -1154,7 +1154,9 @@ class UploadHandler
     }
 
     protected function get_singular_param_name() {
-        return substr($this->options['param_name'], 0, -1);
+// TODO: AB altered here as was converting 'files[]' to 
+		return $this->options['param_name'];
+//        return substr($this->options['param_name'], 0, -1);
     }
 
     protected function get_file_name_param() {
@@ -1163,8 +1165,10 @@ class UploadHandler
     }
 
     protected function get_file_names_params() {
-        $params = isset($_REQUEST[$this->options['param_name']]) ?
-            $_REQUEST[$this->options['param_name']] : array();
+		// TODO: AB altered here too
+		$paramName = str_replace('[]', '', $this->options['param_name']);
+        $params = isset($_REQUEST[$paramName]) ?
+            $_REQUEST[$paramName] : array();
         foreach ($params as $key => $value) {
             $params[$key] = basename(stripslashes($value));
         }
