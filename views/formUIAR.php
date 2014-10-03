@@ -4,6 +4,7 @@ use yii\helpers\Html;
 
 $context = $this->context;
 ?>
+<div id="<?= str_replace('[]', '', $context->name);?>-files-container" >
 	<!-- The fileupload-buttonbar contains buttons to add/delete files and start/cancel the upload -->
 	<div class="row fileupload-buttonbar">
 		<div class="col-lg-7">
@@ -34,5 +35,6 @@ $context = $this->context;
 	</div>
 	<!-- The table listing the files available for upload/download -->
 	<table role="presentation" class="table table-striped">
-		<tbody id="<?= str_replace('[]', '', $context->name);?>-files-container" class="files"></tbody>
+		<tbody class="files"></tbody>
 	</table>
+</div>

@@ -49,7 +49,7 @@ class FileUploadUIAR extends FileUploadUI
         $this->options['id'] = $this->model->formName();	// form id
 
         $this->clientOptions['maxFileSize'] = 2000000;
-		$this->clientOptions['filesContainer'] = '#' . str_replace('[]', '', $this->name) . '-files-container';
+		$this->clientOptions['filesContainer'] = '#' . str_replace('[]', '', $this->name) . '-files-container tbody.files';
 
         $this->fieldOptions['accept'] = 'image/*';
         $this->fieldOptions['multiple'] = true;
@@ -87,7 +87,7 @@ class FileUploadUIAR extends FileUploadUI
             GalleryAsset::register($view);
         }
 
-		$fileUploadTarget = "[name=\"{$this->name}\"]";
+		$fileUploadTarget = '#' . str_replace('[]', '', $this->name) . '-files-container';
 		FileUploadUIAsset::register($view);
 
 		// this from http://stackoverflow.com/questions/19807361/uploading-multiple-files-asynchronously-by-blueimp-jquery-fileupload
@@ -163,6 +163,7 @@ class FileUploadUIAR extends FileUploadUI
 			// set call back for when upload process done - to block removal of the file input in case of error
 			// basically we do want to show file upload errors but return others to there pre-upload state
 			$('[name="files[]"]').bind('fileuploaddone', function (e, data) {
+				var paramName;
 				e.preventDefault();
 				// if there are errors there will be no redirect member in our json response from the UploadHandler
 				// allow redirect only if no errors in form data
@@ -170,31 +171,38 @@ class FileUploadUIAR extends FileUploadUI
 					window.location.href = data.result.redirect;
 				}
 				else {
-					// loop thru each of the rows in our fileupload widget
-					$('tr.template-upload.fade.in').each(function(index) {
-						var file = data.result.hasOwnProperty('files[]') ? data.result['files[]'][index] : null;
-						var error;
-						// if an error was returned from the server
-						if(file && file.hasOwnProperty('error')) {
-							// remove the progress bar
-							$('.progress', this).remove();
-							// set an error for display
-							error = file.error;
+					// loop thru each member of the response
+					$.each(data.result, function(paramName, value){
+						// skip form errors key
+						if(paramName == 'activeformerrors') {
+							return true;
 						}
-						// am assuming any empty result can only come from create within updateAction where ActiveRecord:save() failed
-						// but will get into this else as well if no error - discarding empty result error in jqeury.fileupload-ui.js done
-						// handler
-						else {
-							// reset the progress bar
-							$('.progress-bar.progress-bar-success', $('.progress', this).attr('aria-valuenow', 0)).attr('style', 'width: 0%;');
-							// enable the start button - even though it is hidden
-							$('button.btn.btn-primary.start', this).prop('disabled', false);
-						}
-						
-						if(error) {
-							// display error
-							$('.error.text-danger', this).html(error);
-						}
+						// loop thru each of the rows in our fileupload widget
+						$('tr.template-upload.fade.in').each(function(index) {
+							var file = data.result[paramName][index];
+							var error;
+							// if an error was returned from the server
+							if(file && file.hasOwnProperty('error')) {
+								// remove the progress bar
+								$('.progress', this).remove();
+								// set an error for display
+								error = file.error;
+							}
+							// am assuming any empty result can only come from create within updateAction where ActiveRecord:save() failed
+							// but will get into this else as well if no error - discarding empty result error in jqeury.fileupload-ui.js done
+							// handler
+							else {
+								// reset the progress bar
+								$('.progress-bar.progress-bar-success', $('.progress', this).attr('aria-valuenow', 0)).attr('style', 'width: 0%;');
+								// enable the start button - even though it is hidden
+								$('button.btn.btn-primary.start', this).prop('disabled', false);
+							}
+
+							if(error) {
+								// display error
+								$('.error.text-danger', this).html(error);
+							}
+						});
 					});
 
 					// if form errors
