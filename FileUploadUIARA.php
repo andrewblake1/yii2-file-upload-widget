@@ -9,6 +9,7 @@ namespace dosamigos\fileupload;
 use dosamigos\gallery\GalleryAsset;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
+use yii\web\View;
 
 /**
  * FileUploadUI
@@ -40,4 +41,23 @@ class FileUploadUIARA extends FileUploadUIAR
      */
     public $downloadTemplateView = '@vendor/2amigos/yii2-file-upload-widget/views/downloadUIAR';
 
- } 
+    /**
+     * Registers required script for the plugin to work as jQuery File Uploader UI
+     */
+    public function registerClientScript()
+    {
+        $view = $this->getView();
+
+        if ($this->gallery) {
+            GalleryAsset::register($view);
+        }
+
+		$fileUploadTarget = '#' . str_replace('[]', '', $this->name) . '-files-container';
+		FileUploadUIAsset::register($view);
+
+		// per target in doc ready
+        $options = Json::encode($this->clientOptions);
+        $view->registerJs(";$('$fileUploadTarget').fileupload($options);", View::POS_READY, $fileUploadTarget);
+	}
+
+}

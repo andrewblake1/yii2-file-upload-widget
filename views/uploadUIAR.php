@@ -10,10 +10,6 @@
             <strong class="error text-danger"></strong>
         </td>
         <td>
-            <p class="size">Processing...</p>
-            <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar progress-bar-success" style="width:0%;"></div></div>
-        </td>
-        <td>
             {% if (!i && !o.options.autoUpload) { %}
                 <button class="btn btn-primary start hide" disabled>
                     <i class="glyphicon glyphicon-upload"></i>
@@ -23,7 +19,7 @@
             {% if (!i) { %}
                 <button class="btn btn-warning cancel">
                     <i class="glyphicon glyphicon-ban-circle"></i>
-                    <span>Cancel</span>
+                    <span class="cancel">Cancel</span>
                 </button>
             {% } %}
         </td>

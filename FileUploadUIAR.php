@@ -98,18 +98,18 @@ class FileUploadUIAR extends FileUploadUI
 		// per target in doc ready
         $options = Json::encode($this->clientOptions);
         $view->registerJs(";$('$fileUploadTarget').fileupload($options);", View::POS_READY, $fileUploadTarget);
-		
+
 		// once on window load - using window load as the fileupload plugin needs ataching to target elements first before this code will work
 		$jsLoad = <<<HERE
 			// save reference to the file in a global array so that we can access later to send
-			$('input[type="file"]').on("fileuploadadd", function(e, data){
+			$('div[id$="-files-container"]').on("fileuploadadd", function(e, data){
 				filesList.push(data.files[0]);
-				paramNames.push(e.delegatedEvent.target.name);
+				paramNames.push(e.delegatedEvent.currentTarget.name);
 			});
 
 			// block submit thru file upload - will happen by direct call above - even though would have though taking over click would have
 			// done this it does so guiessing send calls submit first or something and perhaps empties the q
-			$('input[type="file"]').bind('fileuploadsubmit', function (e, data) {
+			$('div[id$="-files-container"]').bind('fileuploadsubmit', function (e, data) {
 				e.preventDefault();
 			});
 
@@ -119,7 +119,7 @@ class FileUploadUIAR extends FileUploadUI
 			// could perhaps attach to the save button instead - i.e this fileupload attach to save rather than the file upload input as save will
 			// be there only once for the whole view if any attributes or model allows files
 // TODO need to iterate and deal with all files somehow and update all inputs - may need to trigger done or something against each input?
-			$('input[name="files[]"]').fileupload(
+			$('$fileUploadTarget').fileupload(
 				'option',
 				'getFilesFromResponse',
 				function (data) {
@@ -135,16 +135,41 @@ class FileUploadUIAR extends FileUploadUI
 				// if there are some files in our upload q
 				if(filesList.length) {
 					// send them programatically
-					$('[name="files[]"]').fileupload('send', {files:filesList, paramName: paramNames});
+					$('$fileUploadTarget').fileupload('send', {files:filesList, paramName: paramNames});
 				} else {
 					// TODO try just a submit thru yiiActiveForm plugin - might not noeed the button and the click
 					$('#activFormSave').click();
 				}
 			});
 
+			// because cancelled are added by client we don't easily have access to the click function here so use event bubbling to pick it up
+			// at the form the check if the original element clicked was a cancel button  - allow normal processing afterwards
+			$('form').click(function(e) {
+				if($(e.target).hasClass('cancel')) {
+					var target = $(e.target);
+					// need to figure out which file to remove from our globalFiles list added to in add
+					// get paramName - which is the name nearest file input field above this element in the dom
+					var name = $('input[type="file"]', target.closest('div[id$="-files-container"]')).attr('name');
+					// get the row number this element resides in within this table
+					var rowIndex = $('tr').index(target.closest('tr'));
+					// remove this from fileList and paramNames, paired arrays but not grouped
+					var atRow = 0;
+					$(paramNames).each(function (i, paramName) {
+						if(name == paramName) {
+							if(atRow == rowIndex) {
+								paramNames.splice(i, 1);
+								filesList.splice(i, 1);
+							} else {
+								atRow++;
+							}
+						}
+					});
+				}
+			});
+
 //need to change to our new targets							
 			// Load existing files - loop thru all the file inputs which will have fileupload plugin capabilities
-			$('input[type="file"]').each(function() {
+			$('div[id$="-files-container"]').each(function() {
 				$(this).addClass('fileupload-processing');
 				$.ajax({
 					// Uncomment the following to send cross-domain cookies:
@@ -162,7 +187,7 @@ class FileUploadUIAR extends FileUploadUI
 
 			// set call back for when upload process done - to block removal of the file input in case of error
 			// basically we do want to show file upload errors but return others to there pre-upload state
-			$('[name="files[]"]').bind('fileuploaddone', function (e, data) {
+			$('$fileUploadTarget').bind('fileuploaddone', function (e, data) {
 				var paramName;
 				e.preventDefault();
 				// if there are errors there will be no redirect member in our json response from the UploadHandler
@@ -183,8 +208,6 @@ class FileUploadUIAR extends FileUploadUI
 							var error;
 							// if an error was returned from the server
 							if(file && file.hasOwnProperty('error')) {
-								// remove the progress bar
-								$('.progress', this).remove();
 								// set an error for display
 								error = file.error;
 							}
@@ -192,8 +215,6 @@ class FileUploadUIAR extends FileUploadUI
 							// but will get into this else as well if no error - discarding empty result error in jqeury.fileupload-ui.js done
 							// handler
 							else {
-								// reset the progress bar
-								$('.progress-bar.progress-bar-success', $('.progress', this).attr('aria-valuenow', 0)).attr('style', 'width: 0%;');
 								// enable the start button - even though it is hidden
 								$('button.btn.btn-primary.start', this).prop('disabled', false);
 							}
