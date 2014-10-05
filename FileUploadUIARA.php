@@ -58,6 +58,41 @@ class FileUploadUIARA extends FileUploadUIAR
 		// per target in doc ready
         $options = Json::encode($this->clientOptions);
         $view->registerJs(";$('$fileUploadTarget').fileupload($options);", View::POS_READY, $fileUploadTarget);
-	}
 
-}
+		// once on window load - using window load as the fileupload plugin needs ataching to target elements first before this code will work
+		$jsLoad = <<<HERE
+			// custom getFilesFromResponse due to possible multiple widgets
+			$('$fileUploadTarget').fileupload(
+				'option',
+				'getFilesFromResponse',
+				function (data) {
+					if (data.result && $.isArray(data.result['{$this->name}'])) {
+						return data.result['{$this->name}'];
+					}
+					return [];
+				}
+			);
+			
+			// Load existing files
+			$('$fileUploadTarget').each(function() {
+				$(this).addClass('fileupload-processing');
+				$.ajax({
+					// Uncomment the following to send cross-domain cookies:
+					//xhrFields: {withCredentials: true},
+					url: '{$this->urlGetExistingFiles}',
+					dataType: 'json',
+					context: $(this)[0]
+				}).always(function () {
+					$(this).removeClass('fileupload-processing');
+				}).done(function (result) {
+					$(this).fileupload('option', 'done')
+						.call(this, $.Event('done'), {result: result});
+				});
+			});
+HERE;
+		
+		// this needs to come after the fileUpload attachement to the file inputs which are in doc ready
+		// the key makes this only once overall for the page/model
+        $view->registerJs($jsLoad, View::POS_LOAD, $fileUploadTarget);
+    }
+} 

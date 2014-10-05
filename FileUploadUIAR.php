@@ -10,6 +10,7 @@ use dosamigos\gallery\GalleryAsset;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use yii\web\View;
+use yii\helpers\Url;
 
 /**
  * FileUploadUI
@@ -40,6 +41,10 @@ class FileUploadUIAR extends FileUploadUI
      * @var string the download view path to render the js download template
      */
     public $downloadTemplateView = '@vendor/2amigos/yii2-file-upload-widget/views/downloadUIAR';
+    /**
+     * @var string the url for the controller get existing files action
+     */
+	public $urlGetExistingFiles;
 
     /**
      * @inheritdoc
@@ -53,7 +58,9 @@ class FileUploadUIAR extends FileUploadUI
 
         $this->fieldOptions['accept'] = 'image/*';
         $this->fieldOptions['multiple'] = true;
-//        $this->fieldOptions['id'] = ArrayHelper::getValue($this->options, 'id');
+
+		// keeping consistent with how urls are specified in the parent class
+		$this->urlGetExistingFiles = Url::to($this->urlGetExistingFiles);
 
         parent::init();
 
@@ -113,18 +120,13 @@ class FileUploadUIAR extends FileUploadUI
 				e.preventDefault();
 			});
 
-			// because we want to potentially return different arrays of files for different attributes we have different names for the file
-			// input and this is the array key we want - not just 'files' as the default plugin implementation assumes
-			// also note that this should only attach to our model level button which means might need a hidden one if only attribute uploads
-			// could perhaps attach to the save button instead - i.e this fileupload attach to save rather than the file upload input as save will
-			// be there only once for the whole view if any attributes or model allows files
-// TODO need to iterate and deal with all files somehow and update all inputs - may need to trigger done or something against each input?
+			// custom getFilesFromResponse due to possible multiple widgets
 			$('$fileUploadTarget').fileupload(
 				'option',
 				'getFilesFromResponse',
 				function (data) {
-					if (data.result && $.isArray(data.result['files[]'])) {
-						return data.result['files[]'];
+					if (data.result && $.isArray(data.result['{$this->name}'])) {
+						return data.result['{$this->name}'];
 					}
 					return [];
 				}
@@ -167,14 +169,13 @@ class FileUploadUIAR extends FileUploadUI
 				}
 			});
 
-//need to change to our new targets							
-			// Load existing files - loop thru all the file inputs which will have fileupload plugin capabilities
-			$('div[id$="-files-container"]').each(function() {
+			// Load existing files
+			$('$fileUploadTarget').each(function() {
 				$(this).addClass('fileupload-processing');
 				$.ajax({
 					// Uncomment the following to send cross-domain cookies:
 					//xhrFields: {withCredentials: true},
-					url: $(this).fileupload('option', 'url'),
+					url: '{$this->urlGetExistingFiles}',
 					dataType: 'json',
 					context: $(this)[0]
 				}).always(function () {
@@ -237,11 +238,10 @@ class FileUploadUIAR extends FileUploadUI
 					$('#nonattributeerrors').html(data.result.hasOwnProperty('nonattributeerrors') ? data.result.nonattributeerrors : '');
 				}
 			});
-
 HERE;
 		
 		// this needs to come after the fileUpload attachement to the file inputs which are in doc ready
 		// the key makes this only once overall for the page/model
-        $view->registerJs($jsLoad, View::POS_LOAD, 'files[]');
+        $view->registerJs($jsLoad, View::POS_LOAD, $fileUploadTarget);
     }
 } 
