@@ -97,8 +97,6 @@ class FileUploadUIAR extends FileUploadUI
 		$fileUploadTarget = '#' . str_replace('[]', '', $this->name) . '-files-container';
 		FileUploadUIAsset::register($view);
 
-		// this from http://stackoverflow.com/questions/19807361/uploading-multiple-files-asynchronously-by-blueimp-jquery-fileupload
-		// to stop seperate requests for each file, split into our various suitable blocks
 		// once in doc ready
 		$view->registerJs(';var filesList = [], paramNames = [], elem = $("form");');
 		
@@ -108,6 +106,20 @@ class FileUploadUIAR extends FileUploadUI
 
 		// once on window load - using window load as the fileupload plugin needs ataching to target elements first before this code will work
 		$jsLoad = <<<HERE
+			$('div[id$="-files-container"]').on("fileuploaddestroy", function(e, data){
+				e.preventDefault();
+				var name = $('input[type="file"]',  $(e.target).closest('div[id$="-files-container"]')).attr('name');
+				// create a hidden input to post this file to delete
+				var button = $(e.toElement);
+				$('<input>').attr({
+					type: 'hidden',
+					value: data.url,
+					name: 'delete[' + name.replace(/[\[\]']+/g,'') + '][]'
+				}).insertAfter(button);
+				// hide this row
+				button.closest('tr').toggleClass('in').hide('slow');
+			});
+
 			// save reference to the file in a global array so that we can access later to send
 			$('div[id$="-files-container"]').on("fileuploadadd", function(e, data){
 				filesList.push(data.files[0]);
