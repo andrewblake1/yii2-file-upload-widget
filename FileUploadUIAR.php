@@ -143,7 +143,7 @@ class FileUploadUIAR extends FileUploadUI
 					return [];
 				}
 			);
-			
+
 			// deal with click events ourselves on the main save button - there is also a hidden save button if no files
 			$('.fileupload-buttonbar .start').on('click',function () { 
 				// if there are some files in our upload q
@@ -239,6 +239,15 @@ class FileUploadUIAR extends FileUploadUI
 						});
 					});
 
+					// if need to restore in deleted files due to unique validator failure
+					if(data.result.hasOwnProperty('restore')) {
+						$.each(data.result.restore, function (paramName, fileName) {
+							var container = $('#' + paramName + '-files-container');
+							var button = $('[data-url="' + fileName + '"]', container);
+							button.closest('tr').addClass('in').show('slow');
+						});
+					}
+
 					// if form errors
 					if(data.result.hasOwnProperty('activeformerrors') && !data.result.activeformerrors.hasOwnProperty('length')) {
 						// use yii to deal with the error
@@ -251,7 +260,7 @@ class FileUploadUIAR extends FileUploadUI
 				}
 			});
 HERE;
-		
+
 		// this needs to come after the fileUpload attachement to the file inputs which are in doc ready
 		// the key makes this only once overall for the page/model
         $view->registerJs($jsLoad, View::POS_LOAD, $fileUploadTarget);

@@ -31,6 +31,6 @@ $context = $this->context;
 	</div>
 	<!-- The table listing the files available for upload/download -->
 	<table role="presentation" class="table table-striped">
-		<tbody id="<?= str_replace('[]', '', $context->name);?>-files-container" class="files"></tbody>
+		<tbody id="<?= strtolower($context->model->formName()) . '-' . str_replace('[]', '', $context->name);?>" class="files"></tbody>
 	</table>
 </div>
