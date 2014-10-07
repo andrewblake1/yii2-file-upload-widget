@@ -151,8 +151,8 @@ class FileUploadUIAR extends FileUploadUI
 					// send them programatically
 					$('$fileUploadTarget').fileupload('send', {files:filesList, paramName: paramNames});
 				} else {
-					// TODO try just a submit thru yiiActiveForm plugin - might not noeed the button and the click
-					$('#activFormSave').click();
+					// fake it so that fileupload send will run
+					$('$fileUploadTarget').fileupload('send', {files:'dummy to make the send fire'});
 				}
 			});
 
