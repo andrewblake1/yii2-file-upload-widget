@@ -5,13 +5,6 @@
         <td>
             <span class="preview"></span>
         </td>
-        <td>
-            <p class="name">{%=file.name%}</p>
-            <strong class="error text-danger"></strong>
-        </td>
-        <td>
-            <p class="size"></p>
-        </td>
        <td>
             {% if (!i && !o.options.autoUpload) { %}
                 <button class="btn btn-primary start hide" disabled>
@@ -25,6 +18,13 @@
                     <span class="cancel">Cancel</span>
                 </button>
             {% } %}
+        </td>
+        <td>
+            <p class="name">{%=file.name%}</p>
+            <strong class="error text-danger"></strong>
+        </td>
+        <td>
+            <p class="size"></p>
         </td>
     </tr>
 {% } %}

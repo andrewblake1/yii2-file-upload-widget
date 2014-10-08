@@ -4,7 +4,7 @@ use yii\helpers\Html;
 
 $context = $this->context;
 ?>
-<div id="<?= str_replace('[]', '', $context->name);?>-files-container" >
+<div id="<?= str_replace('[]', '', $context->name);?>-files-container">
 	<!-- The fileupload-buttonbar contains buttons to add/delete files and start/cancel the upload -->
 	<div class="row fileupload-buttonbar">
 		<div class="col-lg-7">

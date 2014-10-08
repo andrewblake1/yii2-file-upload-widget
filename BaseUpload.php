@@ -46,8 +46,10 @@ class BaseUpload extends InputWidget
     {
         parent::init();
 
+		// can be empty for jquery file upload as takes from form if empty
         if(empty($this->url)) {
-            throw new InvalidConfigException('"url" cannot be empty.');
+
+  //          throw new InvalidConfigException('"url" cannot be empty.');
         }
 
         $this->clientOptions['url'] = Url::to($this->url);

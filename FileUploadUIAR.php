@@ -11,6 +11,7 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use yii\web\View;
 use yii\helpers\Url;
+use Yii;
 
 /**
  * FileUploadUI
@@ -51,19 +52,29 @@ class FileUploadUIAR extends FileUploadUI
      */
     public function init()
     {
-        $this->options['id'] = $this->model->formName();	// form id
-
+		// if read only access
+		if(!Yii::$app->user->can($this->model->modelNameShort)) {
+			$this->formView = '@vendor/2amigos/yii2-file-upload-widget/views/formUIARRead';
+			$this->uploadTemplateView = '@vendor/2amigos/yii2-file-upload-widget/views/uploadUIARRead';
+			$this->downloadTemplateView = '@vendor/2amigos/yii2-file-upload-widget/views/downloadUIARRead';
+		}
+		// form id
+        $this->options['id'] = $this->model->formName();	
+		// html name attribute for the file input button - applies to the model as a whole and not to an attribute - for attribute 
+		$this->name = $this->options['name'] = 'files[]'; 
+		// controller action url to get existing files
         $this->clientOptions['maxFileSize'] = 2000000;
 		$this->clientOptions['filesContainer'] = '#' . str_replace('[]', '', $this->name) . '-files-container tbody.files';
-
         $this->fieldOptions['accept'] = 'image/*';
         $this->fieldOptions['multiple'] = true;
-
-		// keeping consistent with how urls are specified in the parent class
-		$this->urlGetExistingFiles = Url::to($this->urlGetExistingFiles);
+		$this->urlGetExistingFiles = Url::to([	
+			strtolower($this->model->formName()) . '/getexistingfiles',
+			'id' => $this->model->id
+		]);
 
         parent::init();
 
+		// this needed because of the parent setting this in an undesireable fashion for this widget
 		unset($this->fieldOptions['id']); 
     }
 
@@ -247,6 +258,15 @@ class FileUploadUIAR extends FileUploadUI
 							button.closest('tr').addClass('in').show('slow');
 						});
 					}
+						
+					// need to add the files attribute to the data used by yiiActiveForm in order for it to apply any error messages
+					var attribute = {
+						id: 'account-files',
+						container: '#files-files-container',
+						input: '[name="files[]"]',
+						error: '.help-block',
+					};
+					$('form').data('yiiActiveForm').attributes.push(attribute);
 
 					// if form errors
 					if(data.result.hasOwnProperty('activeformerrors') && !data.result.activeformerrors.hasOwnProperty('length')) {

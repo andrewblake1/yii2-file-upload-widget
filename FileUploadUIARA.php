@@ -10,6 +10,8 @@ use dosamigos\gallery\GalleryAsset;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use yii\web\View;
+use yii\helpers\Url;
+use Yii;
 
 /**
  * FileUploadUI
@@ -40,6 +42,28 @@ class FileUploadUIARA extends FileUploadUIAR
      * @var string the download view path to render the js download template
      */
     public $downloadTemplateView = '@vendor/2amigos/yii2-file-upload-widget/views/downloadUIAR';
+
+    /**
+     * @inheritdoc
+     */
+    public function init()
+    {
+        parent::init();
+
+		// if read only access
+		if(!Yii::$app->user->can($this->model->modelNameShort)) {
+			$this->formView = '@vendor/2amigos/yii2-file-upload-widget/views/formUIARARead';
+		}
+		// html name attribute for the file input button - applies to the model as a whole and not to an attribute - for attribute 
+		$this->name = $this->options['name'] = $this->attribute . '[]'; 
+		// controller action url to get existing files
+		$this->urlGetExistingFiles = Url::to([	
+			strtolower($this->model->formName()) . '/getexistingfiles',
+			'id' => $this->model->id,
+			'attribute' => $this->attribute,
+		]);
+		$this->clientOptions['filesContainer'] = '#' . str_replace('[]', '', $this->name) . '-files-container tbody.files';
+    }
 
     /**
      * Registers required script for the plugin to work as jQuery File Uploader UI
