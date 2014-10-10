@@ -5,7 +5,12 @@
         <td>
             <span class="preview"></span>
         </td>
-       <td>
+        <td class="break-word">
+            <p class="name">{%=file.name%}</p>
+            <strong class="error text-danger"></strong>
+        </td>
+        <td>
+            <span class="size"></span>
             {% if (!i && !o.options.autoUpload) { %}
                 <button class="btn btn-primary start hide" disabled>
                     <i class="glyphicon glyphicon-upload"></i>
@@ -13,18 +18,11 @@
                 </button>
             {% } %}
             {% if (!i) { %}
-                <button class="btn btn-warning cancel">
+                <button class="btn btn-warning cancel pull-right">
                     <i class="glyphicon glyphicon-ban-circle"></i>
                     <span class="cancel">Cancel</span>
                 </button>
             {% } %}
-        </td>
-        <td>
-            <p class="name">{%=file.name%}</p>
-            <strong class="error text-danger"></strong>
-        </td>
-        <td>
-            <p class="size"></p>
         </td>
     </tr>
 {% } %}

@@ -156,7 +156,7 @@ class FileUploadUIAR extends FileUploadUI
 			);
 
 			// deal with click events ourselves on the main save button - there is also a hidden save button if no files
-			$('.fileupload-buttonbar .start').on('click',function () { 
+			$('button[type="button"].start').on('click',function () { 
 				// if there are some files in our upload q
 				if(filesList.length) {
 					// send them programatically
@@ -281,8 +281,6 @@ class FileUploadUIAR extends FileUploadUI
 			});
 HERE;
 
-		// this needs to come after the fileUpload attachement to the file inputs which are in doc ready
-		// the key makes this only once overall for the page/model
         $view->registerJs($jsLoad, View::POS_LOAD, $fileUploadTarget);
     }
 } 
