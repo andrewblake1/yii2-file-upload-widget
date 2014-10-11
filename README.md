@@ -1,34 +1,25 @@
-BlueImp File Upload Widget for Yii2
-===================================
+BlueImp File Upload Widget for Yii2 ActiveRecord attributes
+===========================================================
 
-Renders a [BlueImp jQuery File Upload plugin](http://blueimp.github.io/jQuery-File-Upload/).
-
-Installation
-------------
-The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
-
-Either run
-
-```
-php composer.phar require "2amigos/yii2-file-upload-widget" "*"
-```
-or add
-
-```json
-"2amigos/yii2-file-upload-widget" : "*"
-```
-
-to the require section of your application's `composer.json` file.
+Widget to render the jQuery File Upload UI plugin similar to 
+[its demo](http://blueimp.github.io/jQuery-File-Upload/index.html)
+for ActiveRecord attributes. Allows multiple widgets for one ActiveRecord
+and allows multiple files per attribute. Relies on special controller
+actions to generate the expected responses, and some custom file
+validation.
+ 
+The POST request generated when sending files, sends all files in a single
+request along with other form data, allowing for files to act the same as any
+other input in the form i.e. the files not need be saved until all inputs are
+validated, and the database has been successfully updated. Supports validation
+across all files for an attribute e.g. maxFiles, and also supports per file
+validation e.g. matching mime types etc.
 
 Usage
 -----
 
-The widget comes with two flavors:
-
-- FileUpload: [Basic](http://blueimp.github.io/jQuery-File-Upload/basic.html) and
-    [BasicPlus](http://blueimp.github.io/jQuery-File-Upload/basic-plus.html)
-- FileUploadUI: [BasicPlus UI](http://blueimp.github.io/jQuery-File-Upload/index.html)
-
+Attach the controller trait to controller, and the ActiveRecordTrait to the ActiveRecord and alter as
+necassary.
 
 ```
 <?php

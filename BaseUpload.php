@@ -19,7 +19,7 @@ use yii\widgets\InputWidget;
  * @link http://www.2amigos.us/
  * @package dosamigos\fileupload
  */
-class BaseUpload extends InputWidget
+class BaseUpload extends \yii\widgets\InputWidget
 {
     /**
      * @var string|array upload route

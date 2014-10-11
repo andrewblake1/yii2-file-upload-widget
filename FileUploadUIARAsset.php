@@ -9,34 +9,34 @@ namespace dosamigos\fileupload;
 use yii\web\AssetBundle;
 
 /**
- * FileUploadUIAsset
+ * FileUploadUIARAsset
  *
- * @author Antonio Ramirez <amigo.cobos@gmail.com>
- * @link http://www.ramirezcobos.com/
- * @link http://www.2amigos.us/
+ * @author Andrew Blake <admin@newzealandfishing.com>
  * @package dosamigos\fileupload
  */
 class FileUploadUIARAsset extends AssetBundle
 {
-    public $sourcePath = '@bower/';
+    public $sourcePath = '@vendor/';
 
     public $css = [
-        'jquery-file-upload/css/jquery.fileupload.css'
+        'bower/jquery-file-upload/css/jquery.fileupload.css',
+        '2amigos/yii2-file-upload-widget/assets/css/fileuploaduiar.css',
     ];
 
     public $js = [
-        'jquery-file-upload/js/vendor/jquery.ui.widget.js',
-        'blueimp-tmpl/js/tmpl.min.js',
-        'blueimp-load-image/js/load-image.all.min.js',
-        'blueimp-canvas-to-blob/js/canvas-to-blob.js',
-        'jquery-file-upload/js/jquery.iframe-transport.js',
-        'jquery-file-upload/js/jquery.fileupload.js',
-        'jquery-file-upload/js/jquery.fileupload-process.js',
-        'jquery-file-upload/js/jquery.fileupload-image.js',
-        'jquery-file-upload/js/jquery.fileupload-audio.js',
-        'jquery-file-upload/js/jquery.fileupload-video.js',
-        'jquery-file-upload/js/jquery.fileupload-validate.js',
-        'jquery-file-upload/js/jquery.fileupload-ui.js',
+        'bower/jquery-file-upload/js/vendor/jquery.ui.widget.js',
+        'bower/blueimp-tmpl/js/tmpl.min.js',
+        'bower/blueimp-load-image/js/load-image.all.min.js',
+        'bower/blueimp-canvas-to-blob/js/canvas-to-blob.js',
+        'bower/jquery-file-upload/js/jquery.iframe-transport.js',
+        'bower/jquery-file-upload/js/jquery.fileupload.js',
+        'bower/jquery-file-upload/js/jquery.fileupload-process.js',
+        'bower/jquery-file-upload/js/jquery.fileupload-image.js',
+        'bower/jquery-file-upload/js/jquery.fileupload-audio.js',
+        'bower/jquery-file-upload/js/jquery.fileupload-video.js',
+        'bower/jquery-file-upload/js/jquery.fileupload-validate.js',
+        'bower/jquery-file-upload/js/jquery.fileupload-ui.js',
+        '2amigos/yii2-file-upload-widget/assets/js/jquery.fileuploaduiar.js',
 
     ];
 

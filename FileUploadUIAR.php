@@ -14,18 +14,51 @@ use yii\helpers\Url;
 use Yii;
 
 /**
- * FileUploadUI
+ * FileUploadUIAR
  *
- * Widget to render the jQuery File Upload UI plugin as shown in
+ * Widget to render the jQuery File Upload UI plugin similar to 
  * [its demo](http://blueimp.github.io/jQuery-File-Upload/index.html)
+ * for ActiveRecord attributes. Allows multiple widgets for one ActiveRecord
+ * and allows multiple files per attribute. Relies on special controller
+ * actions to generate the expected responses, and some custom file
+ * validation.
+ * 
+ * The POST request generated when sending files, sends all files in a single
+ * request along with other form data, allowing for files to act the same as any
+ * other input in the form i.e. the files not need be saved until all inputs are
+ * validated, and the database has been succesfully updated.
+ * 
  *
- * @author Antonio Ramirez <amigo.cobos@gmail.com>
- * @link http://www.ramirezcobos.com/
- * @link http://www.2amigos.us/
+ * @author Andrew Blake <admin@newzealandfishing.com>
  * @package dosamigos\fileupload
  */
-class FileUploadUIAR extends FileUploadUI
+class FileUploadUIAR extends \yii\widgets\InputWidget
 {
+    /**
+     * @var string|array upload route
+     */
+    public $url;
+    /**
+     * @var array the plugin options. For more information see the jQuery File Upload options documentation.
+     * @see https://github.com/blueimp/jQuery-File-Upload/wiki/Options
+     */
+    public $clientOptions = [
+		'maxFileSize' => 2000000,
+	];
+    /**
+     * @var array the event handlers for the jQuery File Upload plugin.
+     * Please refer to the jQuery File Upload plugin web page for possible options.
+     * @see https://github.com/blueimp/jQuery-File-Upload/wiki/Options#callback-options
+     */
+    public $clientEvents = [];
+    /**
+     * @var array the HTML attributes for the file input tag.
+     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     */
+    public $fieldOptions = [
+		'accept' =>'image/*',
+        'multiple' =>true,
+	];
     /**
      * @var bool whether to use the Bootstrap Gallery on the images or not
      */
@@ -46,38 +79,46 @@ class FileUploadUIAR extends FileUploadUI
      * @var string the url for the controller get existing files action
      */
 	public $urlGetExistingFiles;
+    /**
+     * @var string the ID of the upload template, given as parameter to the tmpl() method to set the uploadTemplate option.
+     */
+    public $uploadTemplateId;
+    /**
+     * @var string the ID of the download template, given as parameter to the tmpl() method to set the downloadTemplate option.
+     */
+    public $downloadTemplateId;
 
     /**
      * @inheritdoc
      */
     public function init()
     {
-		// if read only access
-		if(!Yii::$app->user->can($this->model->modelNameShort)) {
-			$this->formView = '@vendor/2amigos/yii2-file-upload-widget/views/formUIARRead';
-			$this->uploadTemplateView = '@vendor/2amigos/yii2-file-upload-widget/views/uploadUIARRead';
-			$this->downloadTemplateView = '@vendor/2amigos/yii2-file-upload-widget/views/downloadUIARRead';
-		}
-		// form id
-        $this->options['id'] = $this->model->formName();	
-		// html name attribute for the file input button - applies to the model as a whole and not to an attribute - for attribute 
-		$this->name = $this->options['name'] = 'files[]'; 
-		// controller action url to get existing files
-        $this->clientOptions['maxFileSize'] = 2000000;
-		$this->clientOptions['filesContainer'] = '#' . str_replace('[]', '', $this->name) . '-files-container tbody.files';
-        $this->fieldOptions['accept'] = 'image/*';
-        $this->fieldOptions['multiple'] = true;
-		$this->urlGetExistingFiles = Url::to([	
-			strtolower($this->model->formName()) . '/getexistingfiles',
-			'id' => $this->model->id
-		]);
-
         parent::init();
 
-		// this needed because of the parent setting this in an undesireable fashion for this widget
-		unset($this->fieldOptions['id']); 
-    }
+		// if read only access
+		if(!Yii::$app->user->can($this->model->modelNameShort)) {
+			$this->formView .= 'Read';
+			$this->uploadTemplateView .= 'Read';
+			$this->downloadTemplateView .= 'Read';
+		}
 
+		// form id
+        $this->options['id'] = $this->model->formName();	
+
+		// html name attribute for the file input button - applies to the model as a whole and not to an attribute - for attribute 
+		$this->name = $this->options['name'] = $this->attribute . '[]';
+
+		// controller action url to get existing files
+		$this->urlGetExistingFiles = Url::to([	
+			strtolower($this->model->formName()) . '/getexistingfiles',
+			'id' => $this->model->id,
+			'attribute' => $this->attribute,
+		]);
+	
+		// container element to hold the file input and the file information of uploaded files, and pending file uploads
+		$this->clientOptions['filesContainer'] = '#' . str_replace('[]', '', $this->name) . '-files-container tbody.files';
+    }
+	
     /**
      * @inheritdoc
      */
@@ -87,200 +128,12 @@ class FileUploadUIAR extends FileUploadUI
         echo $this->render($this->downloadTemplateView);
         echo $this->render($this->formView);
 
-        if ($this->gallery) {
-            echo $this->render($this->galleryTemplateView);
-        }
-
-        $this->registerClientScript();
-    }
-
-    /**
-     * Registers required script for the plugin to work as jQuery File Uploader UI
-     */
-    public function registerClientScript()
-    {
         $view = $this->getView();
 
-        if ($this->gallery) {
-            GalleryAsset::register($view);
-        }
+		FileUploadUIARAsset::register($view);
 
-		$fileUploadTarget = '#' . str_replace('[]', '', $this->name) . '-files-container';
-		FileUploadUIAsset::register($view);
-
-		// once in doc ready
-		$view->registerJs(';var filesList = [], paramNames = [], elem = $("form");');
-		
-		// per target in doc ready
         $options = Json::encode($this->clientOptions);
-        $view->registerJs(";$('$fileUploadTarget').fileupload($options);", View::POS_READY, $fileUploadTarget);
-
-		// once on window load - using window load as the fileupload plugin needs ataching to target elements first before this code will work
-		$jsLoad = <<<HERE
-			$('div[id$="-files-container"]').on("fileuploaddestroy", function(e, data){
-				e.preventDefault();
-				var name = $('input[type="file"]',  $(e.target).closest('div[id$="-files-container"]')).attr('name');
-				// create a hidden input to post this file to delete
-				var button = $(e.toElement);
-				$('<input>').attr({
-					type: 'hidden',
-					value: data.url,
-					name: 'delete[' + name.replace(/[\[\]']+/g,'') + '][]'
-				}).insertAfter(button);
-				// hide this row
-				button.closest('tr').toggleClass('in').hide('slow');
-			});
-
-			// save reference to the file in a global array so that we can access later to send
-			$('div[id$="-files-container"]').on("fileuploadadd", function(e, data){
-				filesList.push(data.files[0]);
-				paramNames.push(e.delegatedEvent.currentTarget.name);
-			});
-
-			// block submit thru file upload - will happen by direct call above - even though would have though taking over click would have
-			// done this it does so guiessing send calls submit first or something and perhaps empties the q
-			$('div[id$="-files-container"]').bind('fileuploadsubmit', function (e, data) {
-				e.preventDefault();
-			});
-
-			// custom getFilesFromResponse due to possible multiple widgets
-			$('$fileUploadTarget').fileupload(
-				'option',
-				'getFilesFromResponse',
-				function (data) {
-					if (data.result && $.isArray(data.result['{$this->name}'])) {
-						return data.result['{$this->name}'];
-					}
-					return [];
-				}
-			);
-
-			// deal with click events ourselves on the main save button - there is also a hidden save button if no files
-			$('button[type="button"].start').on('click',function () { 
-				// if there are some files in our upload q
-				if(filesList.length) {
-					// send them programatically
-					$('$fileUploadTarget').fileupload('send', {files:filesList, paramName: paramNames});
-				} else {
-					// fake it so that fileupload send will run
-					$('$fileUploadTarget').fileupload('send', {files:'dummy to make the send fire'});
-				}
-			});
-
-			// because cancelled are added by client we don't easily have access to the click function here so use event bubbling to pick it up
-			// at the form the check if the original element clicked was a cancel button  - allow normal processing afterwards
-			$('form').click(function(e) {
-				if($(e.target).hasClass('cancel')) {
-					var target = $(e.target);
-					// need to figure out which file to remove from our globalFiles list added to in add
-					// get paramName - which is the name nearest file input field above this element in the dom
-					var name = $('input[type="file"]', target.closest('div[id$="-files-container"]')).attr('name');
-					// get the row number this element resides in within this table
-					var rowIndex = $('tr').index(target.closest('tr'));
-					// remove this from fileList and paramNames, paired arrays but not grouped
-					var atRow = 0;
-					$(paramNames).each(function (i, paramName) {
-						if(name == paramName) {
-							if(atRow == rowIndex) {
-								paramNames.splice(i, 1);
-								filesList.splice(i, 1);
-							} else {
-								atRow++;
-							}
-						}
-					});
-				}
-			});
-
-			// Load existing files
-			$('$fileUploadTarget').each(function() {
-				$(this).addClass('fileupload-processing');
-				$.ajax({
-					// Uncomment the following to send cross-domain cookies:
-					//xhrFields: {withCredentials: true},
-					url: '{$this->urlGetExistingFiles}',
-					dataType: 'json',
-					context: $(this)[0]
-				}).always(function () {
-					$(this).removeClass('fileupload-processing');
-				}).done(function (result) {
-					$(this).fileupload('option', 'done')
-						.call(this, $.Event('done'), {result: result});
-				});
-			});
-
-			// set call back for when upload process done - to block removal of the file input in case of error
-			// basically we do want to show file upload errors but return others to there pre-upload state
-			$('$fileUploadTarget').bind('fileuploaddone', function (e, data) {
-				var paramName;
-				e.preventDefault();
-				// if there are errors there will be no redirect member in our json response from the UploadHandler
-				// allow redirect only if no errors in form data
-				if(data.result.hasOwnProperty('redirect')) {
-					window.location.href = data.result.redirect;
-				}
-				else {
-					// loop thru each member of the response
-					$.each(data.result, function(paramName, value){
-						// skip form errors key
-						if(paramName == 'activeformerrors') {
-							return true;
-						}
-						// loop thru each of the rows in our fileupload widget
-						$('tr.template-upload.fade.in').each(function(index) {
-							var file = data.result[paramName][index];
-							var error;
-							// if an error was returned from the server
-							if(file && file.hasOwnProperty('error')) {
-								// set an error for display
-								error = file.error;
-							}
-							// am assuming any empty result can only come from create within updateAction where ActiveRecord:save() failed
-							// but will get into this else as well if no error - discarding empty result error in jqeury.fileupload-ui.js done
-							// handler
-							else {
-								// enable the start button - even though it is hidden
-								$('button.btn.btn-primary.start', this).prop('disabled', false);
-							}
-
-							if(error) {
-								// display error
-								$('.error.text-danger', this).html(error);
-							}
-						});
-					});
-
-					// if need to restore in deleted files due to unique validator failure
-					if(data.result.hasOwnProperty('restore')) {
-						$.each(data.result.restore, function (paramName, fileName) {
-							var container = $('#' + paramName + '-files-container');
-							var button = $('[data-url="' + fileName + '"]', container);
-							button.closest('tr').addClass('in').show('slow');
-						});
-					}
-						
-					// need to add the files attribute to the data used by yiiActiveForm in order for it to apply any error messages
-					var attribute = {
-						id: 'account-files',
-						container: '#files-files-container',
-						input: '[name="files[]"]',
-						error: '.help-block',
-					};
-					$('form').data('yiiActiveForm').attributes.push(attribute);
-
-					// if form errors
-					if(data.result.hasOwnProperty('activeformerrors') && !data.result.activeformerrors.hasOwnProperty('length')) {
-						// use yii to deal with the error
-						$('form').data('yiiActiveForm').submitting = true;
-						$('form').yiiActiveForm('updateInputs', data.result.activeformerrors);
-					}
-
-					// if non attribute form errors - e.g. trigger reported errors, fk constraint errors etc
-					$('#nonattributeerrors').html(data.result.hasOwnProperty('nonattributeerrors') ? data.result.nonattributeerrors : '');
-				}
-			});
-HERE;
-
-        $view->registerJs($jsLoad, View::POS_LOAD, $fileUploadTarget);
+		$fileUploadTarget = '#' . str_replace('[]', '', $this->name) . '-files-container';
+        $view->registerJs(";fileuploaduiar ($options, '$fileUploadTarget', '{$this->name}', '{$this->urlGetExistingFiles}');");
     }
 } 
