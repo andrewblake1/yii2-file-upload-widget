@@ -4,7 +4,7 @@ BlueImp File Upload Widget for Yii2 ActiveRecord attributes
 Widget to render the jQuery File Upload UI plugin similar to 
 [its demo](http://blueimp.github.io/jQuery-File-Upload/index.html)
 for ActiveRecord attributes. Allows multiple widgets for one ActiveRecord
-and allows multiple files per attribute. Relies on special controller
+and allows multiple files per attribute. Relies on custom controller
 actions to generate the expected responses, and some custom file
 validation.
  
