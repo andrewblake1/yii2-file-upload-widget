@@ -6,10 +6,7 @@
  */
 namespace dosamigos\fileupload;
 
-use dosamigos\gallery\GalleryAsset;
-use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
-use yii\web\View;
 use yii\helpers\Url;
 use Yii;
 
@@ -27,7 +24,6 @@ use Yii;
  * request along with other form data, allowing for files to act the same as any
  * other input in the form i.e. the files not need be saved until all inputs are
  * validated, and the database has been succesfully updated.
- * 
  *
  * @author Andrew Blake <admin@newzealandfishing.com>
  * @package dosamigos\fileupload
@@ -43,26 +39,16 @@ class FileUploadUIAR extends \yii\widgets\InputWidget
      * @see https://github.com/blueimp/jQuery-File-Upload/wiki/Options
      */
     public $clientOptions = [
-		'maxFileSize' => 2000000,
-	];
-    /**
-     * @var array the event handlers for the jQuery File Upload plugin.
-     * Please refer to the jQuery File Upload plugin web page for possible options.
-     * @see https://github.com/blueimp/jQuery-File-Upload/wiki/Options#callback-options
-     */
-    public $clientEvents = [];
-    /**
+        'maxFileSize' => 2000000,
+    ];
+   /**
      * @var array the HTML attributes for the file input tag.
      * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
      */
     public $fieldOptions = [
-		'accept' =>'image/*',
+        'accept' =>'image/*',
         'multiple' =>true,
-	];
-    /**
-     * @var bool whether to use the Bootstrap Gallery on the images or not
-     */
-    public $gallery = false;
+    ];
     /**
      * @var string the form view path to render the JQuery File Upload UI
      */
@@ -78,15 +64,7 @@ class FileUploadUIAR extends \yii\widgets\InputWidget
     /**
      * @var string the url for the controller get existing files action
      */
-	public $urlGetExistingFiles;
-    /**
-     * @var string the ID of the upload template, given as parameter to the tmpl() method to set the uploadTemplate option.
-     */
-    public $uploadTemplateId;
-    /**
-     * @var string the ID of the download template, given as parameter to the tmpl() method to set the downloadTemplate option.
-     */
-    public $downloadTemplateId;
+    public $urlGetExistingFiles;
 
     /**
      * @inheritdoc
@@ -95,30 +73,27 @@ class FileUploadUIAR extends \yii\widgets\InputWidget
     {
         parent::init();
 
-		// if read only access
-		if(!Yii::$app->user->can($this->model->modelNameShort)) {
-			$this->formView .= 'Read';
-			$this->uploadTemplateView .= 'Read';
-			$this->downloadTemplateView .= 'Read';
-		}
+        // if read only access - this line would change with different projects
+        if(!Yii::$app->user->can($this->model->modelNameShort)) {
+            $this->formView .= 'Read';
+            $this->uploadTemplateView .= 'Read';
+            $this->downloadTemplateView .= 'Read';
+        }
 
-		// form id
-        $this->options['id'] = $this->model->formName();	
+        $this->options['id'] = $this->model->formName();    
+        $this->name = $this->options['name'] = $this->attribute . '[]';
 
-		// html name attribute for the file input button - applies to the model as a whole and not to an attribute - for attribute 
-		$this->name = $this->options['name'] = $this->attribute . '[]';
-
-		// controller action url to get existing files
-		$this->urlGetExistingFiles = Url::to([	
-			strtolower($this->model->formName()) . '/getexistingfiles',
-			'id' => $this->model->id,
-			'attribute' => $this->attribute,
-		]);
-	
-		// container element to hold the file input and the file information of uploaded files, and pending file uploads
-		$this->clientOptions['filesContainer'] = '#' . str_replace('[]', '', $this->name) . '-files-container tbody.files';
+        // controller action url to get existing files
+        $this->urlGetExistingFiles = Url::to([    
+            strtolower($this->model->formName()) . '/getexistingfiles',
+            'id' => $this->model->id,
+            'attribute' => $this->attribute,
+        ]);
+    
+        // container element to hold the file input and the file information of uploaded files, and pending file uploads
+        $this->clientOptions['filesContainer'] = '#' . str_replace('[]', '', $this->name) . '-files-container tbody.files';
     }
-	
+
     /**
      * @inheritdoc
      */
@@ -130,10 +105,10 @@ class FileUploadUIAR extends \yii\widgets\InputWidget
 
         $view = $this->getView();
 
-		FileUploadUIARAsset::register($view);
+        FileUploadUIARAsset::register($view);
 
         $options = Json::encode($this->clientOptions);
-		$fileUploadTarget = '#' . str_replace('[]', '', $this->name) . '-files-container';
+        $fileUploadTarget = '#' . str_replace('[]', '', $this->name) . '-files-container';
         $view->registerJs(";fileuploaduiar ($options, '$fileUploadTarget', '{$this->name}', '{$this->urlGetExistingFiles}');");
     }
 } 

@@ -8,21 +8,21 @@ Copyright Andrew Blake 2014.
 
 /* jquery file upload files list inside row of kartik details form -- remove top border from files list */
 .table-striped .table-striped > tbody > tr:first-child > td {
-	border-top: none;
+    border-top: none;
 }
 .table-striped table.table-striped {
-	margin-bottom:0;
+    margin-bottom:0;
 }
 .no-gutter {
     padding-left:0 !important;
     padding-right:0 !important;
 }
 .break-word {
-	-ms-word-break: break-all;
-	word-break: break-all;
-	/* Non standard for webkit */
-	word-break: break-word;
+    -ms-word-break: break-all;
+    word-break: break-all;
+    /* Non standard for webkit */
+    word-break: break-word;
 }
 .size {
-	padding-right: 8px;
+    padding-right: 8px;
 }

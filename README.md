@@ -22,49 +22,99 @@ Attach the controller trait to controller, and the ActiveRecordTrait to the Acti
 necassary.
 
 ```
-<?php
-use dosamigos\fileupload\FileUpload;
 
-// without UI
-?>
-
-<?= FileUpload::widget([
-	'model' => $model,
-	'attribute' => 'image',
-	'url' => ['media/upload', 'id' => $model->id], // your url, this is just for demo purposes,
-	'options' => ['accept' => 'image/*'],
-	'clientOptions' => [
-		'maxFileSize' => 2000000
-	]
+<?= dosamigos\fileupload\FileUploadUIAR::widget([
+    'model' => $model,
+    'attribute' => 'image',
+    'options' => ['accept' => 'image/*'],
+    'clientOptions' => [
+        'maxFileSize' => 2000000
+    ]
 ]);?>
 
-<?php
+```
 
-// with UI
+Within your form set
 
-use dosamigos\fileupload\FileUploadUI;
-?>
-<?= FileUploadUI::widget([
-	'model' => $model,
-	'attribute' => 'image',
-	'url' => ['media/upload', 'id' => $tour_id],
-	'gallery' => false,
-	'fieldOptions' => [
-    		'accept' => 'image/*'
-	],
-	'clientOptions' => [
-    		'maxFileSize' => 2000000
-	]
-]);
-?>
+```
+
+enctype='multipart/form-data'
+
+```
+
+Set the submit button to
+
+```
+
+<?= $this->context->renderPartial('@vendor/2amigos/yii2-file-upload-widget/views/saveButtonBar.php'); ?>
+
+```
+
+Copy, alter and use as needed the example traits for active record and controller
+
+Add 'getexistingfiles' to the allowed actions within your controllers rules
+
+Add file properties and getFileAttributes method to your ActiveRecord and add
+rules that apply to the attribute as a whole (per file validation is explained
+below)
+
+```
+class Account extends \common\components\ActiveRecord
+{
+    use \common\components\FileActiveRecordTrait;
+
+    /**
+     * @var string $logo_image is a file attribute
+     */
+    public $logo_image;
+
+    /**
+     * Get the attribute names for files
+     *
+     * @return array or strings - file attribute names
+     */
+    public function getFileAttributes()
+    {
+        return [
+            'logo_image',
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function rules()
+    {
+        return [
+            [['logo_image'], '\dosamigos\fileupload\FileValidator', 'skipOnEmpty' => false, 'maxFiles' => 2],
+            ....
+        ];
+    }
+
+    ...
+
+```
+
+Copy and alter for each file attribute example file dosamigos\fileupload\AccountLogoImageFile.php which
+contains the validation rule applicable per file
+
+This widget is configured to use dosamigos resource mananger - currently
+configured for amazon s3. Alter your local config as per
+
+```
+
+    'components' => [
+        'resourceManager' => [
+            'class' => 'dosamigos\resourcemanager\AmazonS3ResourceManager',
+            'key' => 'your key',
+            'secret' => 'your secret',
+            'bucket' => 'your bucket'
+        ],
+        ...
+
 ```
 
 Further Information
 -------------------
 Please, check the [jQuery File Upload documentation](https://github.com/blueimp/jQuery-File-Upload/wiki) for further
 information about its configuration options.
-
-
-> [![2amigOS!](http://www.gravatar.com/avatar/55363394d72945ff7ed312556ec041e0.png)](http://www.2amigos.us)  
-<i>Web development has never been so fun!</i>  
-[www.2amigos.us](http://www.2amigos.us)
