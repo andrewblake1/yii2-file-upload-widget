@@ -36,8 +36,10 @@ trait FileActiveRecordTrait
         if ($return = parent::delete()) {
             // if there is no soft delete
             if (!isset(static::getTableSchema()->columns['deleted'])) {
-                // hard deleted so remove this branch of files
-                Yii::$app->resourceManager->deleteMatching($prefix);
+                // hard deleted so remove this branch of files - being careful in
+                // s3 not to remove e.g. client/10 when wanting to remove client/1
+                Yii::$app->resourceManager->deleteMatching($this->path . '/');
+                Yii::$app->resourceManager->delete($this->path );
             }
         }
 

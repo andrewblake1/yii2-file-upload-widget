@@ -10,16 +10,54 @@ validation.
  
 The POST request generated when sending files, sends all files in a single
 request along with other form data, allowing for files to act the same as any
-other input in the form i.e. the files not need be saved until all inputs are
+other input in the form i.e. the files shoult't be need be saved until all inputs are
 validated, and the database has been successfully updated. Supports validation
 across all files for an attribute e.g. maxFiles, and also supports per file
 validation e.g. matching mime types etc.
 
+This is currently untested in applications other than the one I am currently
+working on. In this project the files are arranged hierachically as per navigation
+within the system i.e. Client > 1 > Project > 3 > Task > 5 forms the directory
+path (actually a key in Amazon s3) Client/1/Project/3/Task/5 and attributes are
+added where necassary e.g. Client/1/logo-image/logoimage1.jpg. This allows for simple
+cleanup of obsolete files when a model is deleted i.e. in a unix file system
+rm -rf Client/1 when ClientActiveRecord::findOne(1)->delete() or on s3 remove
+all objects fromt the bucket where prefix is Client/1/ and then remove Client/1
+(don't want to remove Client/10 etc)
+
 Usage
 -----
 
-Attach the controller trait to controller, and the ActiveRecordTrait to the ActiveRecord and alter as
-necassary.
+Attach the controller trait to your controller, and the ActiveRecordTrait to your
+ActiveRecord and alter as necassary.
+
+```
+
+class AccountController extends \backend\components\Controller
+{
+    use \common\components\FileControllerTrait;
+    
+    ...
+
+```
+
+Within your form set
+
+```
+
+enctype='multipart/form-data'
+
+```
+
+Set the submit button as follows (an ordinary submit button in the form will not work)
+
+```
+
+<?= $this->context->renderPartial('@vendor/2amigos/yii2-file-upload-widget/views/saveButtonBar.php'); ?>
+
+```
+
+Add the widget for each attribute file attribute
 
 ```
 
@@ -32,29 +70,14 @@ necassary.
     ]
 ]);?>
 
-```
-
-Within your form set
-
-```
-
-enctype='multipart/form-data'
-
-```
-
-Set the submit button to
-
-```
-
-<?= $this->context->renderPartial('@vendor/2amigos/yii2-file-upload-widget/views/saveButtonBar.php'); ?>
-
-```
-
-Copy, alter and use as needed the example traits for active record and controller
+Copy, alter and use as needed the example traits for active record and controller.
+These won't work out of the box in a new project but are noted in comments where
+they will likely need changing, mainly todo with the hierachical navigation within
+the application this currently written for.
 
 Add 'getexistingfiles' to the allowed actions within your controllers rules
 
-Add file properties and getFileAttributes method to your ActiveRecord and add
+In your ActiveRecord, add file properties, getFileAttributes() method and add
 rules that apply to the attribute as a whole (per file validation is explained
 below)
 
@@ -99,7 +122,7 @@ Copy and alter for each file attribute example file dosamigos\fileupload\Account
 contains the validation rule applicable per file
 
 This widget is configured to use dosamigos resource mananger - currently
-configured for amazon s3. Alter your local config as per
+configured for amazon s3 hence alter your local config similarly to
 
 ```
 
