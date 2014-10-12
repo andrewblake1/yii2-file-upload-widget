@@ -7,10 +7,15 @@ for ActiveRecord attributes. Allows multiple widgets for one ActiveRecord
 and allows multiple files per attribute. Relies on custom controller
 actions to generate the expected responses, and some custom file
 validation.
+
+The files paths are not stored in the database but derived based on model name
+and primary key. Validation can force there to be 1 file, 0 files, or 1+ files per
+attribute, and maintains this thru model updates. Files can be private or public
+on s3 via requesting an expiring (signed) url, hence safe for sensitive information.
  
 The POST request generated when sending files, sends all files in a single
 request along with other form data, allowing for files to act the same as any
-other input in the form i.e. the files shoult't be need be saved until all inputs are
+other input in the form i.e. the files shouldn't be saved until all inputs are
 validated, and the database has been successfully updated. Supports validation
 across all files for an attribute e.g. maxFiles, and also supports per file
 validation e.g. matching mime types etc.
