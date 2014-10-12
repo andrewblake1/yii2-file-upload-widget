@@ -19,7 +19,6 @@
  *         },
  */
  
- 
 function fileuploaduiar (options, fileUploadTarget, paramName, urlGetExistingFiles) {
 	$(fileUploadTarget).fileupload(options);
 
@@ -53,14 +52,17 @@ function fileuploaduiar (options, fileUploadTarget, paramName, urlGetExistingFil
 	});
 }
  
-jQuery(window).load(function () {
+jQuery(document).ready(function () {
 	// keeping track of the files ourselves
 	var filesList = [], paramNames = [];
 
 	// attach jquery-file-upload to the start button
 	var primaryTarget = $('.fileupload-buttonbar');
 	var saveButton = $('button[type="button"].start');
-	primaryTarget.fileupload();
+
+	primaryTarget.fileupload({
+		url : $('form').attr('action')
+	});
 
 	// alter the standard delete action to hide the row and and an input to post the deletes on save
 	$('div[id$="-files-container"]').on("fileuploaddestroy", function(e, data){
