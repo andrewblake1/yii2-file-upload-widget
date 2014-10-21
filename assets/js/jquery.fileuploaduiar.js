@@ -21,7 +21,7 @@
  * following 3 lines to methods:
  * 
  *         updateInputs: function (messages) {
- *             updateInputs($(this), messages);
+ *             updateInputs($(this), messages, true);
  *         },
  *
  * @author Andrew Blake <admin@newzealandfishing.com>
@@ -30,6 +30,7 @@
  */
  
 function fileuploaduiar (options, fileUploadTarget, paramName, urlGetExistingFiles) {
+
     $(fileUploadTarget).fileupload(options);
 
     // custom getFilesFromResponse due to possible multiple widgets
@@ -66,10 +67,9 @@ jQuery(document).ready(function () {
     // keeping track of the files ourselves
     var filesList = [], paramNames = [];
 
-    // attach jquery-file-upload to the start button
+    // attach jquery-file-upload to the start button bar div - needs to surround
+    // the whole widget to make use of progress bar
     var primaryTarget = $('.fileupload-buttonbar');
-    var saveButton = $('button[type="button"].start');
-
     primaryTarget.fileupload({
         url : $('form').attr('action')
     });
@@ -106,8 +106,8 @@ jQuery(document).ready(function () {
         e.preventDefault();
     });
 
-    // deal with click events ourselves on the save button
-    saveButton.on('click',function () {
+    // deal with click events on the save button
+    $('button[type="button"].start').on('click',function () {
         // append the form data
         primaryTarget.fileupload({
             formData: $('form').serializeArray()
@@ -209,7 +209,6 @@ jQuery(document).ready(function () {
             // if form errors
             if(data.result.hasOwnProperty('activeformerrors') && !data.result.activeformerrors.hasOwnProperty('length')) {
                 // use yii to deal with the error
-                $('form').data('yiiActiveForm').submitting = true;
                 $('form').yiiActiveForm('updateInputs', data.result.activeformerrors);
             }
 
