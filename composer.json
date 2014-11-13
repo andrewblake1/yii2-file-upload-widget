@@ -13,7 +13,7 @@
     ],
     "require": {
         "yiisoft/yii2": "*",
-        "bower-asset/jQuery-File-Upload": "@stable",
+        "bower-asset/jQuery-File-Upload": “*”,
         "2amigos/yii2-resource-manager-component" : "*",
         "yiisoft/yii2-imagine": "*"
     },
