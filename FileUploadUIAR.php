@@ -8,6 +8,7 @@ namespace dosamigos\fileupload;
 
 use yii\helpers\Json;
 use yii\helpers\Url;
+use yii\helpers\StringHelper;
 use Yii;
 
 /**
@@ -73,8 +74,9 @@ class FileUploadUIAR extends \yii\widgets\InputWidget
     {
         parent::init();
 
+        $model = $this->model;
         // if read only access - this line would change with different projects
-        if(!Yii::$app->user->can(basename($this->model->className()))) {
+        if(!Yii::$app->user->can(StringHelper::basename($this->model->className()))) {
             $this->formView .= 'Read';
             $this->uploadTemplateView .= 'Read';
             $this->downloadTemplateView .= 'Read';
