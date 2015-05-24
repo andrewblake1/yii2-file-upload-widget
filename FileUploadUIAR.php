@@ -74,7 +74,7 @@ class FileUploadUIAR extends \yii\widgets\InputWidget
         parent::init();
 
         // if read only access - this line would change with different projects
-        if(!Yii::$app->user->can($this->model->modelNameShort)) {
+        if(!Yii::$app->user->can(basename($this->model->className()))) {
             $this->formView .= 'Read';
             $this->uploadTemplateView .= 'Read';
             $this->downloadTemplateView .= 'Read';
