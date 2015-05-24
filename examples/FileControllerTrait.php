@@ -211,7 +211,7 @@ trait FileControllerTrait
                     // go to the admin view of this node
                     $params[] = 'index';
                     $fullModelName = $this->modelName;
-                    if ($parentAttribute = $fullModelName::parentAttribute()) {
+                    if ($parentAttribute = $fullModelName::NAV_PARENT_ATTRIBUTE) {
                         $params[$parentAttribute] = $model->$parentAttribute;
                     }
                 } else {
