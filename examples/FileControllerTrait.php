@@ -12,7 +12,7 @@ use kartik\helpers\Html;
 use yii\web\UploadedFile;
 use yii\web\Response;
 use dosamigos\fileupload\File;
-use backend\components\DetailView;
+use backend\widgets\DetailView;
 use yii\helpers\Inflector;
 
 /**
@@ -258,7 +258,7 @@ trait FileControllerTrait
                 // set redirect back to parent index view
                 $params[] = 'index';
                 $fullModelName = $this->modelName;
-                if ($parentAttribute = $fullModelName::parentAttribute()) {
+                if ($parentAttribute = $fullModelName::NAV_PARENT_ATTRIBUTE) {
                     $params[$parentAttribute] = $model->$parentAttribute;
                 }
                 $response += ['redirect' => Url::to($params)];

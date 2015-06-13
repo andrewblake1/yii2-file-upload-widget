@@ -6,6 +6,7 @@
  */
 namespace dosamigos\fileupload;
 
+use yii\helpers\Inflector;
 use yii\helpers\Json;
 use yii\helpers\Url;
 use yii\helpers\StringHelper;
@@ -74,7 +75,6 @@ class FileUploadUIAR extends \yii\widgets\InputWidget
     {
         parent::init();
 
-        $model = $this->model;
         // if read only access - this line would change with different projects
         if(!Yii::$app->user->can(StringHelper::basename($this->model->className()))) {
             $this->formView .= 'Read';
@@ -86,12 +86,12 @@ class FileUploadUIAR extends \yii\widgets\InputWidget
         $this->name = $this->options['name'] = $this->attribute . '[]';
 
         // controller action url to get existing files
-        $this->urlGetExistingFiles = Url::to([    
-            strtolower($this->model->formName()) . '/getexistingfiles',
+        $this->urlGetExistingFiles = Url::to([
+            Inflector::camel2id(StringHelper::basename($this->model->className())) . '/getexistingfiles',
             'id' => $this->model->id,
             'attribute' => $this->attribute,
         ]);
-    
+
         // container element to hold the file input and the file information of uploaded files, and pending file uploads
         $this->clientOptions['filesContainer'] = '#' . str_replace('[]', '', $this->name) . '-files-container tbody.files';
     }
