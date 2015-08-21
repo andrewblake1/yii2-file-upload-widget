@@ -11,22 +11,7 @@
  * Allows for multiple upload widgets, with mulitple files, and validation per file
  * and per widget e.g. maxFiles
  * 
- * TODO: currently using yiiActiveForm to update failed form attributes fails
- * (apart from the hack here) due to local scoping of the required function
- * updateInputs which for this to work needs to be added to the exposed methods
- * object in yiiActiveForm. Could possibly just make an altered copy of
- * yiiActiveForm possibly however have raised issue on github and support forum
- * but will be extreme low priority to look into I imagine so might have to
- * copy yiiActiveForm. current simple hack to yiiActiveForm is adding the
- * following 3 lines to methods:
- * 
- *         updateInputs: function (messages) {
- *             updateInputs($(this), messages, true);
- *         },
- *
- * @author Andrew Blake <admin@newzealandfishing.com>
  * @package dosamigos\fileupload
- * @license don't know the license agreement for -- help yourself in anyway you like
  */
  
 function fileuploaduiar (options, fileUploadTarget, paramName, urlGetExistingFiles) {
@@ -209,7 +194,7 @@ jQuery(document).ready(function () {
             // if form errors
             if(data.result.hasOwnProperty('activeformerrors') && !data.result.activeformerrors.hasOwnProperty('length')) {
                 // use yii to deal with the error
-                $('form').yiiActiveForm('updateInputs', data.result.activeformerrors);
+                $('form').yiiActiveForm('updateMessages', data.result.activeformerrors);
             }
 
             // if non attribute form errors - e.g. trigger reported errors, fk constraint errors etc
